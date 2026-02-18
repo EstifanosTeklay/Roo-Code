@@ -3769,16 +3769,20 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		const state = await this.providerRef.deref()?.getState()
 
-		const {
-			mode,
-			customModes,
-			customModePrompts,
-			customInstructions,
-			experiments,
-			language,
-			apiConfiguration,
-			enableSubfolderRules,
-		} = state ?? {}
+	const {
+    mode,
+    customModes,
+    customModePrompts,
+    customInstructions: rawCustomInstructions,
+    experiments,
+    language,
+    apiConfiguration,
+    enableSubfolderRules,
+} = state ?? {}
+
+const { getIntentEnforcementPrompt } = await import("../../hooks/IntentSystemPrompt")
+const intentRules = getIntentEnforcementPrompt([])
+const customInstructions = intentRules + (rawCustomInstructions ? "\n\n" + rawCustomInstructions : "")
 
 		return await (async () => {
 			const provider = this.providerRef.deref()
