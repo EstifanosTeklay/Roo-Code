@@ -84,6 +84,11 @@ export class HookEngine {
 	 * Loads intent context and injects it into the agent's prompt.
 	 */
 	async selectIntent(intentId: string): Promise<string> {
+		if (!intentId || intentId.trim() === "") {
+			const ids = await this.intentStore.listIntentIds()
+			return `ERROR: No intent_id provided. Valid IDs: ${ids.join(", ")}`
+		}
+
 		const intent = await this.intentStore.getIntent(intentId)
 
 		if (!intent) {
@@ -189,9 +194,12 @@ You have checked out intent ${intentId}. All subsequent file writes will be vali
 	 * Logs the trace entry to agent_trace.jsonl.
 	 */
 	async postHook(ctx: PostHookContext): Promise<void> {
-		console.log(`[PostHook] toolName=${ctx.toolName} activeIntentId=${this.activeIntentId}`)
+		console.log("[PostHook] activeIntentId=", this.activeIntentId, "tool=", ctx.toolName)
 		if (!this.DESTRUCTIVE_TOOLS.has(ctx.toolName)) return
-		if (!this.activeIntentId) return
+
+		// Use activeIntentId from context as fallback if instance activeIntentId is null
+		const effectiveIntentId = this.activeIntentId ?? ctx.activeIntentId
+		if (!effectiveIntentId) return
 
 		if (ctx.toolName === "write_to_file" && ctx.params.path) {
 			const relPath = ctx.params.path
@@ -202,10 +210,14 @@ You have checked out intent ${intentId}. All subsequent file writes will be vali
 			// Update file hash cache for future concurrency checks
 			this.fileHashCache.set(relPath, contentHash)
 
+			// Ensure .orchestration directory exists before writing
+			const orchestrationDir = path.join(this.cwd, ".orchestration")
+			this.ensureOrchestrationDir(orchestrationDir)
+
 			await this.traceLogger.appendTrace({
 				id: uuidv4(),
 				timestamp: new Date().toISOString(),
-				intent_id: this.activeIntentId,
+				intent_id: effectiveIntentId,
 				tool: ctx.toolName,
 				mutation_class: mutationClass,
 				files: [

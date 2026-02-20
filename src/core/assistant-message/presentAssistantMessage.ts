@@ -676,8 +676,14 @@ export async function presentAssistantMessage(cline: Task) {
 
 			switch (block.name) {
 				case "select_active_intent": {
-					const args = block.nativeArgs as { intent_id?: string; reasoning?: string } | undefined
-					const intentResult = await cline.hookEngine.selectIntent(args?.intent_id ?? "")
+					console.log("[select_active_intent] block=", JSON.stringify(block))
+					const intentId =
+						(block.nativeArgs as any)?.intent_id ||
+						(block as any).params?.intent_id ||
+						(block as any).input?.intent_id ||
+						""
+					console.log("[select_active_intent] extracted intentId=", intentId)
+					const intentResult = await cline.hookEngine.selectIntent(intentId)
 					pushToolResult(intentResult)
 					break
 				}
