@@ -267,6 +267,7 @@ export type ToolGroupConfig = {
 export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	execute_command: "run commands",
 	read_file: "read files",
+	select_active_intent: "declare active intent for governance",
 	read_command_output: "read command output",
 	write_to_file: "write files",
 	apply_diff: "apply changes",
