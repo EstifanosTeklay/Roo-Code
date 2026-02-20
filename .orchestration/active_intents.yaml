@@ -1,0 +1,14 @@
+active_intents:
+  - id: INT-001
+    name: Trend Detector Implementation
+    status: IN_PROGRESS
+    owned_scope:
+      - src/**
+      - skills/**
+      - tests/**
+    constraints:
+      - Must follow TDD approach
+      - Must not break existing tests
+    acceptance_criteria:
+      - All tests in tests/functional/ pass
+      - Trend detector returns valid data
