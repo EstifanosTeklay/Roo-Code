@@ -677,40 +677,39 @@ export async function presentAssistantMessage(cline: Task) {
 			}
 
 			switch (block.name) {
-        case "select_active_intent": {
-                const intentResult = await hookEngine.selectIntent(
-                        (block.nativeArgs as any)?.intent_id ?? ""
-                )
-                pushToolResult(intentResult)
-                break
-        }
-        case "write_to_file": {
-                const preCheck = await hookEngine.preHook({
-                        toolName: "write_to_file",
-                        params: (block.nativeArgs as any) ?? {},
-                        activeIntentId: hookEngine.getActiveIntentId(),
-                        cwd: cline.cwd,
-                })
-                if (!preCheck.allowed) {
-                        pushToolResult(JSON.stringify({ error: preCheck.reason, type: "HOOK_BLOCKED" }))
-                        break
-                }
-                await checkpointSaveAndMark(cline)
-                await writeToFileTool.handle(cline, block as ToolUse<"write_to_file">, {
-                        askApproval,
-                        handleError,
-                        pushToolResult,
-                })
-                await hookEngine.postHook({
-                        toolName: "write_to_file",
-                        params: (block.nativeArgs as any) ?? {},
-                        activeIntentId: hookEngine.getActiveIntentId(),
-                        cwd: cline.cwd,
-                        result: null,
-                        elapsedMs: 0,
-                })
-                break
-        }
+				case "select_active_intent": {
+					const args = block.nativeArgs as { intent_id?: string; reasoning?: string } | undefined
+					const intentResult = await hookEngine.selectIntent(args?.intent_id ?? "")
+					pushToolResult(intentResult)
+					break
+				}
+				case "write_to_file": {
+					const preCheck = await hookEngine.preHook({
+						toolName: "write_to_file",
+						params: (block.nativeArgs as any) ?? {},
+						activeIntentId: hookEngine.getActiveIntentId(),
+						cwd: cline.cwd,
+					})
+					if (!preCheck.allowed) {
+						pushToolResult(JSON.stringify({ error: preCheck.reason, type: "HOOK_BLOCKED" }))
+						break
+					}
+					await checkpointSaveAndMark(cline)
+					await writeToFileTool.handle(cline, block as ToolUse<"write_to_file">, {
+						askApproval,
+						handleError,
+						pushToolResult,
+					})
+					await hookEngine.postHook({
+						toolName: "write_to_file",
+						params: (block.nativeArgs as any) ?? {},
+						activeIntentId: hookEngine.getActiveIntentId(),
+						cwd: cline.cwd,
+						result: null,
+						elapsedMs: 0,
+					})
+					break
+				}
 				case "update_todo_list":
 					await updateTodoListTool.handle(cline, block as ToolUse<"update_todo_list">, {
 						askApproval,
