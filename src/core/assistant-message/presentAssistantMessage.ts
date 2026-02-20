@@ -37,7 +37,6 @@ import { generateImageTool } from "../tools/GenerateImageTool"
 import { applyDiffTool as applyDiffToolClass } from "../tools/ApplyDiffTool"
 import { isValidToolName, validateToolUse } from "../tools/validateToolUse"
 import { codebaseSearchTool } from "../tools/CodebaseSearchTool"
-import { HookEngine } from "../../hooks/HookEngine"
 import { formatResponse } from "../prompts/responses"
 import { sanitizeToolUseId } from "../../utils/tool-id"
 
@@ -59,7 +58,6 @@ import { sanitizeToolUseId } from "../../utils/tool-id"
  */
 
 export async function presentAssistantMessage(cline: Task) {
-	const hookEngine = new HookEngine(cline.cwd)
 	if (cline.abort) {
 		throw new Error(`[Task#presentAssistantMessage] task ${cline.taskId}.${cline.instanceId} aborted`)
 	}
@@ -679,15 +677,15 @@ export async function presentAssistantMessage(cline: Task) {
 			switch (block.name) {
 				case "select_active_intent": {
 					const args = block.nativeArgs as { intent_id?: string; reasoning?: string } | undefined
-					const intentResult = await hookEngine.selectIntent(args?.intent_id ?? "")
+					const intentResult = await cline.hookEngine.selectIntent(args?.intent_id ?? "")
 					pushToolResult(intentResult)
 					break
 				}
 				case "write_to_file": {
-					const preCheck = await hookEngine.preHook({
+					const preCheck = await cline.hookEngine.preHook({
 						toolName: "write_to_file",
 						params: (block.nativeArgs as any) ?? {},
-						activeIntentId: hookEngine.getActiveIntentId(),
+						activeIntentId: cline.hookEngine.getActiveIntentId(),
 						cwd: cline.cwd,
 					})
 					if (!preCheck.allowed) {
@@ -700,10 +698,10 @@ export async function presentAssistantMessage(cline: Task) {
 						handleError,
 						pushToolResult,
 					})
-					await hookEngine.postHook({
+					await cline.hookEngine.postHook({
 						toolName: "write_to_file",
 						params: (block.nativeArgs as any) ?? {},
-						activeIntentId: hookEngine.getActiveIntentId(),
+						activeIntentId: cline.hookEngine.getActiveIntentId(),
 						cwd: cline.cwd,
 						result: null,
 						elapsedMs: 0,
