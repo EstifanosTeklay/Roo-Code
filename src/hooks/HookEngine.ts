@@ -189,6 +189,7 @@ You have checked out intent ${intentId}. All subsequent file writes will be vali
 	 * Logs the trace entry to agent_trace.jsonl.
 	 */
 	async postHook(ctx: PostHookContext): Promise<void> {
+		console.log(`[PostHook] toolName=${ctx.toolName} activeIntentId=${this.activeIntentId}`)
 		if (!this.DESTRUCTIVE_TOOLS.has(ctx.toolName)) return
 		if (!this.activeIntentId) return
 
@@ -225,10 +226,7 @@ You have checked out intent ${intentId}. All subsequent file writes will be vali
 	// Private Helpers
 	// ============================================================
 
-	private async validateScope(
-		targetPath: string,
-		intentId: string,
-	): Promise<{ valid: boolean; reason?: string }> {
+	private async validateScope(targetPath: string, intentId: string): Promise<{ valid: boolean; reason?: string }> {
 		const intent = await this.intentStore.getIntent(intentId)
 		if (!intent) return { valid: true } // no intent loaded, skip check
 
@@ -246,10 +244,7 @@ You have checked out intent ${intentId}. All subsequent file writes will be vali
 		}
 	}
 
-	private async checkConcurrency(
-		relPath: string,
-		newContent: string,
-	): Promise<{ ok: boolean; reason?: string }> {
+	private async checkConcurrency(relPath: string, newContent: string): Promise<{ ok: boolean; reason?: string }> {
 		const absolutePath = path.join(this.cwd, relPath)
 
 		try {
@@ -298,10 +293,7 @@ You have checked out intent ${intentId}. All subsequent file writes will be vali
 
 	private matchesGlob(filePath: string, pattern: string): boolean {
 		// Simple glob matching: support ** and * wildcards
-		const regexStr = pattern
-			.replace(/\./g, "\\.")
-			.replace(/\*\*/g, "(.+)")
-			.replace(/\*/g, "([^/]+)")
+		const regexStr = pattern.replace(/\./g, "\\.").replace(/\*\*/g, "(.+)").replace(/\*/g, "([^/]+)")
 		const regex = new RegExp(`^${regexStr}$`)
 		return regex.test(filePath)
 	}
