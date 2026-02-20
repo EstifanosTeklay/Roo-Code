@@ -448,12 +448,20 @@ export class NativeToolCallParser {
 				}
 				break
 
+			case "select_active_intent":
+				if (partialArgs.intent_id) {
+					nativeArgs = {
+						intent_id: partialArgs.intent_id,
+						reasoning: partialArgs.reasoning,
+					}
+				}
+				break
+
 			case "attempt_completion":
 				if (partialArgs.result) {
 					nativeArgs = { result: partialArgs.result }
 				}
 				break
-
 			case "execute_command":
 				if (partialArgs.command) {
 					nativeArgs = {
@@ -776,12 +784,20 @@ export class NativeToolCallParser {
 					}
 					break
 
+				case "select_active_intent":
+					if (args.intent_id !== undefined) {
+						nativeArgs = {
+							intent_id: args.intent_id,
+							reasoning: args.reasoning,
+						} as NativeArgsFor<TName>
+					}
+					break
+
 				case "attempt_completion":
 					if (args.result) {
 						nativeArgs = { result: args.result } as NativeArgsFor<TName>
 					}
 					break
-
 				case "execute_command":
 					if (args.command) {
 						nativeArgs = {

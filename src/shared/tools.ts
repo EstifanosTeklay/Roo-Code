@@ -58,6 +58,8 @@ export const toolParamNames = [
 	"todos",
 	"prompt",
 	"image",
+	"intent_id", // select_active_intent parameter
+	"reasoning", // select_active_intent parameter
 	// read_file parameters (native protocol)
 	"operations", // search_and_replace parameter for multiple operations
 	"patch", // apply_patch parameter
@@ -93,6 +95,7 @@ export type NativeToolArgs = {
 	read_file: import("@roo-code/types").ReadFileToolParams
 	read_command_output: { artifact_id: string; search?: string; offset?: number; limit?: number }
 	attempt_completion: { result: string }
+	select_active_intent: { intent_id: string; reasoning?: string }
 	execute_command: { command: string; cwd?: string }
 	apply_diff: { path: string; diff: string }
 	edit: { file_path: string; old_string: string; new_string: string; replace_all?: boolean }
@@ -267,6 +270,7 @@ export type ToolGroupConfig = {
 export const TOOL_DISPLAY_NAMES: Record<ToolName, string> = {
 	execute_command: "run commands",
 	read_file: "read files",
+	select_active_intent: "declare active intent before any file modification",
 	read_command_output: "read command output",
 	write_to_file: "write files",
 	apply_diff: "apply changes",

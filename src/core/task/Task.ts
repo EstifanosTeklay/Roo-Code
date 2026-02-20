@@ -103,6 +103,7 @@ import { FileContextTracker } from "../context-tracking/FileContextTracker"
 import { RooIgnoreController } from "../ignore/RooIgnoreController"
 import { RooProtectedController } from "../protect/RooProtectedController"
 import { type AssistantMessageContent, presentAssistantMessage } from "../assistant-message"
+import { HookEngine } from "../../hooks/HookEngine"
 import { NativeToolCallParser } from "../assistant-message/NativeToolCallParser"
 import { manageContext, willManageContext } from "../context-management"
 import { ClineProvider } from "../webview/ClineProvider"
@@ -265,6 +266,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 	private taskApiConfigReady: Promise<void>
 
 	providerRef: WeakRef<ClineProvider>
+	public hookEngine: HookEngine
 	private readonly globalStoragePath: string
 	abort: boolean = false
 	currentRequestAbortController?: AbortController
@@ -475,6 +477,8 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		this.workspacePath = parentTask
 			? parentTask.workspacePath
 			: (workspacePath ?? getWorkspacePath(path.join(os.homedir(), "Desktop")))
+
+		this.hookEngine = new HookEngine(this.cwd)
 
 		this.instanceId = crypto.randomUUID().slice(0, 8)
 		this.taskNumber = -1
@@ -3769,20 +3773,20 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		const state = await this.providerRef.deref()?.getState()
 
-	const {
-    mode,
-    customModes,
-    customModePrompts,
-    customInstructions: rawCustomInstructions,
-    experiments,
-    language,
-    apiConfiguration,
-    enableSubfolderRules,
-} = state ?? {}
+		const {
+			mode,
+			customModes,
+			customModePrompts,
+			customInstructions: rawCustomInstructions,
+			experiments,
+			language,
+			apiConfiguration,
+			enableSubfolderRules,
+		} = state ?? {}
 
-const { getIntentEnforcementPrompt } = await import("../../hooks/IntentSystemPrompt")
-const intentRules = getIntentEnforcementPrompt([])
-const customInstructions = intentRules + (rawCustomInstructions ? "\n\n" + rawCustomInstructions : "")
+		const { getIntentEnforcementPrompt } = await import("../../hooks/IntentSystemPrompt")
+		const intentRules = getIntentEnforcementPrompt([])
+		const customInstructions = intentRules + (rawCustomInstructions ? "\n\n" + rawCustomInstructions : "")
 
 		return await (async () => {
 			const provider = this.providerRef.deref()
